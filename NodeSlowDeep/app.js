@@ -1,17 +1,35 @@
+
 /**
- * New node file
+ * Module dependencies.
  */
-var http = require('http');
-urls = ['shapeshed.com','www.bbc.co.uk','edition.cnn.com'];
-function fetchPage(url){
-	var start = new Date();
-	http.get({host:url}, function(res){
-		console.log("Got response from: "+url);
-		console.log('Request took',new Date() - start,'ms');
-		
-	});
+
+var express = require('express'),
+  routes = require('./routes'),
+  user = require('./routes/user'),
+  http = require('http'),
+  path = require('path');
+
+var app = express();
+
+// all environments
+app.set('port', process.env.PORT || 3000);
+app.set('views', __dirname + '/views');
+app.set('view engine', 'jade');
+app.use(express.favicon());
+app.use(express.logger('dev'));
+app.use(express.bodyParser());
+app.use(express.methodOverride());
+app.use(app.router);
+app.use(express.static(path.join(__dirname, 'public')));
+
+// development only
+if ('development' === app.get('env')) {
+  app.use(express.errorHandler());
 }
 
-for(var i = 0; i<urls.length; i++){
-	fetchPage(urls[i]);
-}
+app.get('/', routes.index);
+app.get('/users', user.list);
+
+http.createServer(app).listen(app.get('port'), function(){
+  console.log('Express server listening on port ' + app.get('port'));
+});
